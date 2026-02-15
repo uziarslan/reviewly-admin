@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import logo from '../Assets/logo.png';
 import { SubscriptionsIcon } from './Icons';
+import { useAdminAuth } from '../context/AdminAuthContext';
 
 const TAB_CLASS =
   'flex items-center gap-2 font-inter font-semibold text-sm py-2 px-1 border-b-[3px] border-transparent transition-colors';
@@ -9,11 +10,20 @@ const TAB_ACTIVE = 'text-[#6E43B9] border-b-[#6E43B9]';
 const TAB_INACTIVE = 'text-[#6C737F] hover:text-[#6E43B9]';
 
 const TABS = [
-  { to: '/', label: 'Subscriptions', Icon: SubscriptionsIcon, end: true },
+  { to: '/dashboard', label: 'Subscriptions', Icon: SubscriptionsIcon, end: true },
 ];
 
 function DashNav() {
+  const navigate = useNavigate();
+  const { admin, logout } = useAdminAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef(null);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/', { replace: true });
+  };
 
   useEffect(() => {
     if (drawerOpen) {
@@ -25,6 +35,14 @@ function DashNav() {
       document.body.style.overflow = '';
     };
   }, [drawerOpen]);
+
+  useEffect(() => {
+    const fn = (e) => {
+      if (profileRef.current && !profileRef.current.contains(e.target)) setProfileOpen(false);
+    };
+    document.addEventListener('click', fn);
+    return () => document.removeEventListener('click', fn);
+  }, []);
 
   const renderTab = (tab, isDrawer = false) => {
     const { to, label, Icon, end } = tab;
@@ -56,7 +74,7 @@ function DashNav() {
         <div className="max-w-[1440px] mx-auto">
           {/* Top section: logo (left), burger on mobile / profile on desktop (right) */}
           <div className="flex items-center justify-between py-4 px-4 sm:px-6 lg:px-20 border-b border-[#F2F4F7]">
-            <NavLink to="/" className="flex items-center">
+            <NavLink to="/dashboard" className="flex items-center">
               <img src={logo} alt="Reviewly" className="h-9 w-auto object-contain" />
             </NavLink>
             {/* Burger - mobile only (replaces profile in top bar) */}
@@ -71,13 +89,31 @@ function DashNav() {
               </svg>
             </button>
             {/* Profile - desktop only (mobile: shown inside drawer) */}
-            <button
-              type="button"
-              aria-label="Profile"
-              className="hidden md:flex w-10 h-10 rounded-full border-2 border-[#6E43B9]/30 bg-gray-100 items-center justify-center overflow-hidden shrink-0"
-            >
-              <span className="text-lg text-[#6E43B9]">👤</span>
-            </button>
+            <div className="hidden md:block relative" ref={profileRef}>
+              <button
+                type="button"
+                aria-label="Profile"
+                aria-expanded={profileOpen}
+                onClick={() => setProfileOpen((o) => !o)}
+                className="w-10 h-10 rounded-full border-2 border-[#6E43B9]/30 bg-gray-100 flex items-center justify-center overflow-hidden shrink-0 hover:ring-2 hover:ring-[#6E43B9]/20 transition-shadow"
+              >
+                <span className="text-lg text-[#6E43B9]">👤</span>
+              </button>
+              {profileOpen && (
+                <div className="absolute right-0 top-full mt-2 w-64 py-2 bg-white rounded-lg shadow-lg border border-[#E5E7EB] z-50">
+                  <p className="px-4 py-2 font-inter text-sm text-[#6C737F] truncate" title={admin?.email}>
+                    {admin?.email || '—'}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => { setProfileOpen(false); handleLogout(); }}
+                    className="w-full px-4 py-2 font-inter font-medium text-sm text-red-600 hover:bg-red-50 text-left transition-colors"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Bottom tabs - desktop only */}
@@ -122,12 +158,23 @@ function DashNav() {
           {TABS.map((tab) => renderTab(tab, true))}
         </nav>
         <div className="p-4 mt-auto border-t border-[#F2F4F7]">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-full border-2 border-[#6E43B9]/30 bg-gray-100 flex items-center justify-center overflow-hidden shrink-0">
+              <span className="text-lg text-[#6E43B9]">👤</span>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-inter text-sm font-semibold text-[#0F172A] truncate">
+                {admin?.firstName} {admin?.lastName}
+              </p>
+              <p className="font-inter text-xs text-[#6C737F] truncate">{admin?.email}</p>
+            </div>
+          </div>
           <button
             type="button"
-            aria-label="Profile"
-            className="w-10 h-10 rounded-full border-2 border-[#6E43B9]/30 bg-gray-100 flex items-center justify-center overflow-hidden"
+            onClick={() => { setDrawerOpen(false); handleLogout(); }}
+            className="w-full font-inter font-medium text-sm text-red-600 hover:bg-red-50 py-2 border border-red-200 rounded-lg transition-colors"
           >
-            <span className="text-lg text-[#6E43B9]">👤</span>
+            Logout
           </button>
         </div>
       </div>

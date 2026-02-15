@@ -78,7 +78,7 @@ function ModalBase({ isOpen, onClose, title, children }) {
 
 /**
  * Edit Subscription modal: user info (read-only), subscription type radios, duration dates, Save/Cancel, danger zone (Block user / Delete account).
- * Props: isOpen, onClose, data = { email, name, subscription, startDate, endDate }, onSave(payload), onBlockUser, onDeleteAccount
+ * Props: isOpen, onClose, data = { email, name, subscription, startDate, endDate, blocked }, onSave(payload), onBlockUser, onDeleteAccount
  */
 export function EditSubscriptionModal({
   isOpen,
@@ -88,7 +88,7 @@ export function EditSubscriptionModal({
   onBlockUser,
   onDeleteAccount,
 }) {
-  const { email = '', name = '', subscription = 'Quarterly', startDate = '', endDate = '' } = data;
+  const { email = '', name = '', subscription = 'Quarterly', startDate = '', endDate = '', blocked = false } = data;
   const [subscriptionType, setSubscriptionType] = useState(subscription);
   const [start, setStart] = useState(parseDisplayDate(startDate));
   const [end, setEnd] = useState(parseDisplayDate(endDate));
@@ -128,7 +128,13 @@ export function EditSubscriptionModal({
                   name="subscriptionType"
                   value={opt}
                   checked={subscriptionType === opt}
-                  onChange={() => setSubscriptionType(opt)}
+                  onChange={() => {
+                    setSubscriptionType(opt);
+                    if (opt === 'Free') {
+                      setStart('');
+                      setEnd('');
+                    }
+                  }}
                   className="w-4 h-4 text-[#6E43B9] border-[#D0D5DD] focus:ring-[#6E43B9]"
                 />
                 <span className="font-inter text-[14px] text-[#344054]">{opt}</span>
@@ -185,7 +191,7 @@ export function EditSubscriptionModal({
               onClick={() => onBlockUser?.()}
               className="font-inter font-medium text-[14px] text-[#FF383C]"
             >
-              Block user
+              {blocked ? 'Unblock user' : 'Block user'}
             </button>
             <button
               type="button"
@@ -203,19 +209,21 @@ export function EditSubscriptionModal({
 
 /**
  * Block user confirmation modal.
- * Props: isOpen, onClose, onConfirm
+ * Props: isOpen, onClose, onConfirm, isBlocked (true = user is currently blocked, so we're unblocking)
  */
-export function BlockUserModal({ isOpen, onClose, onConfirm }) {
-  const handleBlock = () => {
+export function BlockUserModal({ isOpen, onClose, onConfirm, isBlocked = false }) {
+  const handleConfirm = () => {
     onConfirm?.();
     onClose();
   };
 
   return (
-    <ModalBase isOpen={isOpen} onClose={onClose} title="Block user?">
+    <ModalBase isOpen={isOpen} onClose={onClose} title={isBlocked ? "Unblock user?" : "Block user?"}>
       <div className="space-y-[24px]">
         <p className="font-inter text-[14px] text-[#344054]">
-          The user will no longer be able to log in or access Reviewly.<br />You can unblock them later.
+          {isBlocked
+            ? "The user will be able to log in and access Reviewly again."
+            : "The user will no longer be able to log in or access Reviewly. You can unblock them later."}
         </p>
         <div className="flex justify-end gap-[24px]">
           <button
@@ -227,10 +235,10 @@ export function BlockUserModal({ isOpen, onClose, onConfirm }) {
           </button>
           <button
             type="button"
-            onClick={handleBlock}
+            onClick={handleConfirm}
             className="px-[24px] py-[11.5px] rounded-[8px] bg-[#CC2D30] font-inter font-bold text-[14px] text-white hover:opacity-90 transition-opacity"
           >
-            Block user
+            {isBlocked ? "Unblock user" : "Block user"}
           </button>
         </div>
       </div>
