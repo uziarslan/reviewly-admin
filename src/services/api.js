@@ -50,3 +50,15 @@ export const usersAPI = {
   remove: (id) =>
     apiFetch(`/admin/users/${id}`, { method: "DELETE" }),
 };
+
+/* ── Analytics ───────────────────────────────── */
+export const analyticsAPI = {
+  getOverview: (days = 30) =>
+    apiFetch(`/admin/analytics/overview?days=${days}`),
+  getExams: (days = 30) =>
+    apiFetch(`/admin/analytics/exams?days=${days}`),
+  getUsers: (days = 30) =>
+    apiFetch(`/admin/analytics/users?days=${days}`),
+  getRetention: (days = 30) =>
+    apiFetch(`/admin/analytics/retention?days=${days}`),
+};
