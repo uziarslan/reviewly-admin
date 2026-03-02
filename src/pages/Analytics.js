@@ -157,11 +157,12 @@ export default function Analytics() {
       </div>
 
       {/* Overview Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <StatCard label="Total Users" value={overview?.totalUsers?.toLocaleString() || 0} sub={`+${overview?.newUsersInRange || 0} new`} />
         <StatCard label="Exam Attempts" value={overview?.totalAttempts?.toLocaleString() || 0} sub={`${overview?.completedAttempts || 0} completed`} color="#10B981" />
         <StatCard label="Completion Rate" value={`${overview?.completionRate || 0}%`} color="#F59E0B" />
-        <StatCard label="Avg Duration" value={formatDuration(overview?.avgDurationSeconds)} color="#3B82F6" />
+        <StatCard label="Total Logins" value={overview?.totalLogins?.toLocaleString() || 0} sub="All time" color="#3B82F6" />
+        <StatCard label="Avg Duration" value={formatDuration(overview?.avgDurationSeconds)} color="#6E43B9" />
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -296,6 +297,7 @@ export default function Analytics() {
             <tr className="border-b border-[#F2F4F7]">
               <th className="font-inter font-medium text-xs text-[#6C737F] uppercase tracking-wider py-3 px-4">User</th>
               <th className="font-inter font-medium text-xs text-[#6C737F] uppercase tracking-wider py-3 px-4">Email</th>
+              <th className="font-inter font-medium text-xs text-[#6C737F] uppercase tracking-wider py-3 px-4 text-right">Logins</th>
               <th className="font-inter font-medium text-xs text-[#6C737F] uppercase tracking-wider py-3 px-4 text-right">Attempts</th>
               <th className="font-inter font-medium text-xs text-[#6C737F] uppercase tracking-wider py-3 px-4 text-right">Completed</th>
               <th className="font-inter font-medium text-xs text-[#6C737F] uppercase tracking-wider py-3 px-4 text-right">Last Active</th>
@@ -304,7 +306,7 @@ export default function Analytics() {
           <tbody>
             {(!retention?.topUsers || retention.topUsers.length === 0) ? (
               <tr>
-                <td colSpan={5} className="font-inter text-sm text-[#9CA3AF] text-center py-8">
+                <td colSpan={6} className="font-inter text-sm text-[#9CA3AF] text-center py-8">
                   No user data for this period
                 </td>
               </tr>
@@ -313,6 +315,7 @@ export default function Analytics() {
                 <tr key={user.userId} className="border-b border-[#F2F4F7] hover:bg-[#FAFAFE] transition-colors">
                   <td className="font-inter text-sm text-[#0F172A] py-3 px-4 font-medium">{user.name}</td>
                   <td className="font-inter text-sm text-[#6C737F] py-3 px-4">{user.email}</td>
+                  <td className="font-inter text-sm text-[#45464E] py-3 px-4 text-right">{user.loginCount ?? '—'}</td>
                   <td className="font-inter text-sm text-[#45464E] py-3 px-4 text-right">{user.attemptCount}</td>
                   <td className="font-inter text-sm text-[#45464E] py-3 px-4 text-right">{user.completedCount}</td>
                   <td className="font-inter text-sm text-[#6C737F] py-3 px-4 text-right">
@@ -325,17 +328,28 @@ export default function Analytics() {
         </table>
       </div>
 
-      {/* Login Frequency (from PostHog) */}
-      {retention?.loginFrequency && retention.loginFrequency.length > 0 && (
+      {/* Login Frequency — Top users by login count (from MongoDB) */}
+      {retention?.topUsersByLogin && retention.topUsersByLogin.length > 0 && (
         <>
-          <SectionTitle>Login Frequency (PostHog)</SectionTitle>
-          <ChartCard title={`Top logins in the last ${days} days`}>
+          <SectionTitle>Login Frequency</SectionTitle>
+          <ChartCard title="Top users by login count (all time)">
             <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={retention.loginFrequency.slice(0, 15)} layout="vertical">
+              <BarChart
+                data={retention.topUsersByLogin.map((u) => ({
+                  name: u.name || u.email || 'Unknown',
+                  loginCount: u.loginCount,
+                  email: u.email,
+                }))}
+                layout="vertical"
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="#F2F4F7" />
                 <XAxis type="number" tick={{ fontSize: 11 }} />
-                <YAxis dataKey="userId" type="category" tick={{ fontSize: 10 }} width={120} />
-                <Tooltip contentStyle={{ fontSize: 12 }} />
+                <YAxis dataKey="name" type="category" tick={{ fontSize: 10 }} width={120} />
+                <Tooltip
+                  contentStyle={{ fontSize: 12 }}
+                  formatter={(val) => [val, 'Logins']}
+                  labelFormatter={(_, payload) => payload?.[0]?.payload?.email || ''}
+                />
                 <Bar dataKey="loginCount" fill="#6E43B9" name="Logins" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
