@@ -238,6 +238,12 @@ export default function UsersTable() {
                 </th>
                 <th className="text-left px-6 py-3">
                   <div className="flex items-center gap-1 font-inter font-medium text-xs text-[#667085] whitespace-nowrap">
+                    Total Logins
+                    <ArrowDownIcon className="w-4 h-4 shrink-0" />
+                  </div>
+                </th>
+                <th className="text-left px-6 py-3">
+                  <div className="flex items-center gap-1 font-inter font-medium text-xs text-[#667085] whitespace-nowrap">
                     Subscription
                     <ArrowDownIcon className="w-4 h-4 shrink-0" />
                   </div>
@@ -280,6 +286,9 @@ export default function UsersTable() {
                       <div className="skeleton-shimmer h-4 w-24 rounded" />
                     </td>
                     <td className="px-6 py-4 align-middle" style={{ height: ROW_HEIGHT }}>
+                      <div className="skeleton-shimmer h-4 w-12 rounded" />
+                    </td>
+                    <td className="px-6 py-4 align-middle" style={{ height: ROW_HEIGHT }}>
                       <div className="skeleton-shimmer h-4 w-16 rounded" />
                     </td>
                     <td className="px-6 py-4 align-middle" style={{ height: ROW_HEIGHT }}>
@@ -305,7 +314,7 @@ export default function UsersTable() {
                   if (!u) {
                     return (
                       <tr key={`empty-${i}`} className="border-t border-[#EAECF0]">
-                        <td colSpan={8} className="px-6 align-middle whitespace-nowrap" style={{ height: ROW_HEIGHT }} />
+                        <td colSpan={9} className="px-6 align-middle whitespace-nowrap" style={{ height: ROW_HEIGHT }} />
                       </tr>
                     );
                   }
@@ -319,6 +328,9 @@ export default function UsersTable() {
                       </td>
                       <td className="px-6 py-4 font-inter text-sm text-[#101828] align-middle whitespace-nowrap" style={{ height: ROW_HEIGHT }}>
                         {u.firstName} {u.lastName}
+                      </td>
+                      <td className="px-6 py-4 font-inter text-sm text-[#667085] align-middle whitespace-nowrap" style={{ height: ROW_HEIGHT }}>
+                        {u.loginCount ?? 0}
                       </td>
                       <td className="px-6 py-4 font-inter text-sm text-[#667085] align-middle whitespace-nowrap" style={{ height: ROW_HEIGHT }}>
                         {PLAN_LABEL[u.subscription?.plan] || "Free"}
