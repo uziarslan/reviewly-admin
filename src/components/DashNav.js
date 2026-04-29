@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import logo from '../Assets/logo.png';
-import { SubscriptionsIcon, AnalyticsIcon } from './Icons';
+import { SubscriptionsIcon, AnalyticsIcon, CalendarIcon } from './Icons';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
 const TAB_CLASS =
@@ -12,6 +12,7 @@ const TAB_INACTIVE = 'text-[#6C737F] hover:text-[#6E43B9]';
 const TABS = [
   { to: '/dashboard', label: 'Subscriptions', Icon: SubscriptionsIcon, end: true },
   { to: '/dashboard/analytics', label: 'Analytics', Icon: AnalyticsIcon, end: false },
+  { to: '/dashboard/exam-schedule', label: 'Exam Schedule', Icon: CalendarIcon, end: false },
 ];
 
 function DashNav() {

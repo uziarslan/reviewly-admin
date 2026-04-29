@@ -62,3 +62,13 @@ export const analyticsAPI = {
   getRetention: (days = 30) =>
     apiFetch(`/admin/analytics/retention?days=${days}`),
 };
+
+/* ── App settings (exam schedule) ─────────────── */
+export const settingsAPI = {
+  getCseExamDate: () => apiFetch("/admin/settings/exam-date"),
+  updateCseExamDate: (cseExamDate) =>
+    apiFetch("/admin/settings/exam-date", {
+      method: "PUT",
+      body: { cseExamDate },
+    }),
+};

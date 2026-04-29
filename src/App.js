@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AdminAuthProvider } from './context/AdminAuthContext';
 import Dashboard from './pages/Dashboard';
 import AnalyticsPage from './pages/AnalyticsPage';
+import ExamSchedule from './pages/ExamSchedule';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -20,13 +21,21 @@ function App() {
               </ProtectedRoute>
             } 
           />
-          <Route 
-            path="/dashboard/analytics" 
+          <Route
+            path="/dashboard/analytics"
             element={
               <ProtectedRoute>
                 <AnalyticsPage />
               </ProtectedRoute>
-            } 
+            }
+          />
+          <Route
+            path="/dashboard/exam-schedule"
+            element={
+              <ProtectedRoute>
+                <ExamSchedule />
+              </ProtectedRoute>
+            }
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
