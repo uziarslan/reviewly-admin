@@ -30,6 +30,28 @@ async function apiFetch(endpoint, options = {}) {
   return data;
 }
 
+/** Like apiFetch but sends FormData (multipart) — lets the browser set the
+ *  Content-Type boundary. Used for image uploads. */
+async function apiUpload(endpoint, formData, method = "POST") {
+  const token = localStorage.getItem("admin_token");
+
+  const res = await fetch(`${API_BASE}${endpoint}`, {
+    method,
+    credentials: "include",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  });
+  const data = await res.json();
+
+  if (!res.ok) {
+    const err = new Error(data.message || "API request failed");
+    err.status = res.status;
+    throw err;
+  }
+
+  return data;
+}
+
 /* ── Admin auth ──────────────────────────────── */
 export const adminAuthAPI = {
   login: (email, password) =>
@@ -61,6 +83,16 @@ export const analyticsAPI = {
     apiFetch(`/admin/analytics/users?days=${days}`),
   getRetention: (days = 30) =>
     apiFetch(`/admin/analytics/retention?days=${days}`),
+};
+
+/* ── What's New ──────────────────────────────── */
+export const whatsNewAPI = {
+  getAll: () => apiFetch("/admin/whats-new"),
+  create: (formData) => apiUpload("/admin/whats-new", formData, "POST"),
+  update: (id, formData) =>
+    apiUpload(`/admin/whats-new/${id}`, formData, "PUT"),
+  remove: (id) =>
+    apiFetch(`/admin/whats-new/${id}`, { method: "DELETE" }),
 };
 
 /* ── App settings (exam schedule) ─────────────── */

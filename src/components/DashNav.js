@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import logo from '../Assets/logo.png';
-import { SubscriptionsIcon, AnalyticsIcon, CalendarIcon } from './Icons';
+import { SubscriptionsIcon, AnalyticsIcon, CalendarIcon, MegaphoneIcon } from './Icons';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
 const TAB_CLASS =
@@ -13,6 +13,7 @@ const TABS = [
   { to: '/dashboard', label: 'Subscriptions', Icon: SubscriptionsIcon, end: true },
   { to: '/dashboard/analytics', label: 'Analytics', Icon: AnalyticsIcon, end: false },
   { to: '/dashboard/exam-schedule', label: 'Exam Schedule', Icon: CalendarIcon, end: false },
+  { to: '/dashboard/whats-new', label: "What's New", Icon: MegaphoneIcon, end: false },
 ];
 
 function DashNav() {

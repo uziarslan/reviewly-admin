@@ -28,6 +28,15 @@ export const CalendarIcon = ({ className = 'w-5 h-5' }) => (
   </svg>
 );
 
+/** What's New tab icon – megaphone */
+export const MegaphoneIcon = ({ className = 'w-5 h-5' }) => (
+  <svg className={className} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M16.6667 6.66667V13.3333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M3.33333 8.33333H5L11.6667 4.16667V15.8333L5 11.6667H3.33333C2.8731 11.6667 2.5 11.2936 2.5 10.8333V9.16667C2.5 8.70643 2.8731 8.33333 3.33333 8.33333Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M5 11.6667V15C5 15.4602 5.3731 15.8333 5.83333 15.8333H7.5C7.96024 15.8333 8.33333 15.4602 8.33333 15V13.3333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 export const SearchIcon = ({ className = 'w-5 h-5' }) => (
   <svg className={className} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M17.5 17.5L13.875 13.875M15.8333 9.16667C15.8333 12.8486 12.8486 15.8333 9.16667 15.8333C5.48477 15.8333 2.5 12.8486 2.5 9.16667C2.5 5.48477 5.48477 2.5 9.16667 2.5C12.8486 2.5 15.8333 5.48477 15.8333 9.16667Z" stroke="#667085" stroke-width="1.66667" stroke-linecap="round" stroke-linejoin="round" />

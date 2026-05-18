@@ -4,6 +4,7 @@ import { AdminAuthProvider } from './context/AdminAuthContext';
 import Dashboard from './pages/Dashboard';
 import AnalyticsPage from './pages/AnalyticsPage';
 import ExamSchedule from './pages/ExamSchedule';
+import WhatsNew from './pages/WhatsNew';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -34,6 +35,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <ExamSchedule />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/whats-new"
+            element={
+              <ProtectedRoute>
+                <WhatsNew />
               </ProtectedRoute>
             }
           />
