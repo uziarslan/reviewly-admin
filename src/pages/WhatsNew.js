@@ -14,11 +14,18 @@ const TYPE_PILL = {
   bugfix: 'bg-[#EC4899]/10 text-[#EC4899]',
 };
 
+const todayDate = new Date().toISOString().slice(0, 10);
+function formatInputDate(iso) {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? todayDate : d.toISOString().slice(0, 10);
+}
+
 const EMPTY_FORM = {
   type: 'new',
   feedbackTag: false,
   title: '',
   description: '',
+  publishedAt: todayDate,
 };
 
 function prettyDate(iso) {
@@ -44,6 +51,7 @@ export default function WhatsNew() {
   const [removeImage, setRemoveImage] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState(null);
+  const [pendingDelete, setPendingDelete] = useState(null);
   const fileRef = useRef(null);
 
   const load = async () => {
@@ -80,6 +88,7 @@ export default function WhatsNew() {
       feedbackTag: !!entry.feedbackTag,
       title: entry.title || '',
       description: entry.description || '',
+      publishedAt: formatInputDate(entry.publishedAt),
     });
     setImageFile(null);
     setExistingImageUrl(entry.imageUrl || '');
@@ -95,6 +104,7 @@ export default function WhatsNew() {
     fd.append('title', form.title);
     fd.append('description', form.description);
     fd.append('status', status);
+    fd.append('publishedAt', form.publishedAt || '');
     if (imageFile) fd.append('image', imageFile);
     if (editingId && removeImage && !imageFile) fd.append('removeImage', 'true');
     return fd;
@@ -145,9 +155,7 @@ export default function WhatsNew() {
     }
   };
 
-  const remove = async (entry) => {
-    if (!window.confirm(`Delete "${entry.title}"? This cannot be undone.`))
-      return;
+  const deleteEntry = async (entry) => {
     try {
       const res = await whatsNewAPI.remove(entry._id);
       if (res.success) {
@@ -156,7 +164,14 @@ export default function WhatsNew() {
       } else setError(res.message || 'Failed to delete');
     } catch (err) {
       setError(err.message || 'Failed to delete');
+    } finally {
+      setPendingDelete(null);
     }
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    await deleteEntry(pendingDelete);
   };
 
   const previewUrl = imageFile ? URL.createObjectURL(imageFile) : '';
@@ -209,11 +224,10 @@ export default function WhatsNew() {
                         key={opt.value}
                         type="button"
                         onClick={() => setForm((f) => ({ ...f, type: opt.value }))}
-                        className={`font-inter font-semibold text-[12px] px-4 py-2 rounded-full transition-all ${
-                          active
-                            ? `${TYPE_PILL[opt.value]} ring-2 ring-offset-1 ring-[#6E43B9]/30`
-                            : 'bg-[#F2F4F7] text-[#6C737F] hover:bg-[#E5E7EB]'
-                        }`}
+                        className={`font-inter font-semibold text-[12px] px-4 py-2 rounded-full transition-all ${active
+                          ? `${TYPE_PILL[opt.value]} ring-2 ring-offset-1 ring-[#6E43B9]/30`
+                          : 'bg-[#F2F4F7] text-[#6C737F] hover:bg-[#E5E7EB]'
+                          }`}
                       >
                         {opt.label}
                       </button>
@@ -264,6 +278,20 @@ export default function WhatsNew() {
                   }
                   placeholder="Describe the update. Line breaks are preserved."
                   className={`${inputCls} resize-y`}
+                />
+              </div>
+
+              <div>
+                <label className="block font-inter font-semibold text-[13px] text-[#0F172A] mb-2">
+                  Publish date
+                </label>
+                <input
+                  type="date"
+                  value={form.publishedAt}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, publishedAt: e.target.value }))
+                  }
+                  className={inputCls}
                 />
               </div>
 
@@ -372,11 +400,10 @@ export default function WhatsNew() {
                         </span>
                       )}
                       <span
-                        className={`font-inter font-semibold text-[11px] px-2.5 py-1 rounded-full ${
-                          e.status === 'published'
-                            ? 'bg-[#16A34A]/10 text-[#16A34A]'
-                            : 'bg-[#F59E0B]/10 text-[#B45309]'
-                        }`}
+                        className={`font-inter font-semibold text-[11px] px-2.5 py-1 rounded-full ${e.status === 'published'
+                          ? 'bg-[#16A34A]/10 text-[#16A34A]'
+                          : 'bg-[#F59E0B]/10 text-[#B45309]'
+                          }`}
                       >
                         {e.status === 'published' ? 'PUBLISHED' : 'DRAFT'}
                       </span>
@@ -416,7 +443,7 @@ export default function WhatsNew() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => remove(e)}
+                        onClick={() => setPendingDelete(e)}
                         className="font-inter font-medium text-[12px] text-[#DC2626] hover:underline ml-auto"
                       >
                         Delete
@@ -429,6 +456,46 @@ export default function WhatsNew() {
           </div>
         </div>
       </main>
+      {pendingDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-lg rounded-[16px] bg-white p-6 shadow-[0_2px_12px_0_rgba(20,20,43,0.08)]">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="font-inter font-semibold text-[18px] text-[#111827]">
+                  Delete update?
+                </h2>
+                <p className="font-inter text-[14px] text-[#475467] mt-2">
+                  Are you sure you want to delete "{pendingDelete.title}"? This cannot be undone.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPendingDelete(null)}
+                className="rounded-lg p-2 text-[#667085] hover:bg-[#F2F4F7] transition-colors"
+                aria-label="Close confirmation dialog"
+              >
+                ×
+              </button>
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setPendingDelete(null)}
+                className="rounded-[8px] border border-[#D1D5DB] bg-white px-4 py-2 text-[13px] font-medium text-[#344054] hover:bg-[#F8FAFC]"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="rounded-[8px] bg-[#DC2626] px-4 py-2 text-[13px] font-semibold text-white hover:bg-[#B91C1C] transition-colors"
+              >
+                Delete update
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
