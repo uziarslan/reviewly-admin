@@ -85,8 +85,8 @@ export const analyticsAPI = {
     apiFetch(`/admin/analytics/retention?days=${days}`),
 };
 
-/* ── What's New ──────────────────────────────── */
-export const whatsNewAPI = {
+/* ── Announcement entries ────────────────────── */
+export const announcementEntriesAPI = {
   getAll: () => apiFetch("/admin/whats-new"),
   create: (formData) => apiUpload("/admin/whats-new", formData, "POST"),
   update: (id, formData) =>
@@ -102,5 +102,15 @@ export const settingsAPI = {
     apiFetch("/admin/settings/exam-date", {
       method: "PUT",
       body: { cseExamDate },
+    }),
+};
+
+/* ── Announcement banner ─────────────────────── */
+export const announcementAPI = {
+  get: () => apiFetch("/admin/settings/announcement"),
+  update: (text, enabled) =>
+    apiFetch("/admin/settings/announcement", {
+      method: "PUT",
+      body: { text, enabled },
     }),
 };

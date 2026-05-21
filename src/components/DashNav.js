@@ -13,7 +13,7 @@ const TABS = [
   { to: '/dashboard', label: 'Subscriptions', Icon: SubscriptionsIcon, end: true },
   { to: '/dashboard/analytics', label: 'Analytics', Icon: AnalyticsIcon, end: false },
   { to: '/dashboard/exam-schedule', label: 'Exam Schedule', Icon: CalendarIcon, end: false },
-  { to: '/dashboard/whats-new', label: "What's New", Icon: MegaphoneIcon, end: false },
+  { to: '/dashboard/whats-new', label: 'Announcement', Icon: MegaphoneIcon, end: false },
 ];
 
 function DashNav() {
