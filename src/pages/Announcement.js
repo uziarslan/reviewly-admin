@@ -37,7 +37,7 @@ function prettyDate(iso) {
   return d.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-const PLACEHOLDER = `Starting June 1, Full Mock Exams will move to Premium to support a more structured and focused review experience during peak CSE season. <a href="https://reviewly.ph/dashboard/whats-new">Read More</a>`;
+const PLACEHOLDER = `Starting June 1, Full Mock Exams will move to Premium to support a more structured and focused review experience during peak CSE season. <a href="https://reviewly.ph/dashboard/announcements">Read More</a>`;
 
 export default function Announcement() {
   /* ── Banner state ── */

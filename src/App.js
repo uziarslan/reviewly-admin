@@ -39,7 +39,7 @@ function App() {
             }
           />
           <Route
-            path="/dashboard/whats-new"
+            path="/dashboard/announcements"
             element={
               <ProtectedRoute>
                 <Announcement />
