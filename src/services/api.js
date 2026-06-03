@@ -61,12 +61,17 @@ export const adminAuthAPI = {
 
 /* ── User management ─────────────────────────── */
 export const usersAPI = {
-  getAll: (page = 1, limit = 10, search = "") =>
-    apiFetch(
-      `/admin/users?page=${page}&limit=${limit}&search=${encodeURIComponent(
-        search
-      )}`
-    ),
+  getAll: (page = 1, limit = 10, search = "", filters = {}) => {
+    const params = new URLSearchParams({
+      page,
+      limit,
+      search,
+    });
+    if (filters.plan) params.set("plan", filters.plan);
+    if (filters.status) params.set("status", filters.status);
+    if (filters.premium) params.set("premium", filters.premium);
+    return apiFetch(`/admin/users?${params.toString()}`);
+  },
   update: (id, data) =>
     apiFetch(`/admin/users/${id}`, { method: "PUT", body: data }),
   remove: (id) =>

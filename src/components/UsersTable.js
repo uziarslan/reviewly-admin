@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { usersAPI } from "../services/api";
 import {
   SearchIcon,
@@ -7,6 +7,7 @@ import {
   PencilIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  CloseIcon,
 } from "./Icons";
 import {
   EditSubscriptionModal,
@@ -20,6 +21,24 @@ const PLAN_LABEL = {
   monthly: "Monthly",
   quarterly: "Quarterly",
 };
+
+/* Filter options surfaced in the Filters popover */
+const PLAN_OPTIONS = [
+  { value: "free", label: "Free" },
+  { value: "weekly", label: "Weekly" },
+  { value: "monthly", label: "Monthly" },
+  { value: "quarterly", label: "Quarterly" },
+];
+const STATUS_OPTIONS = [
+  { value: "active", label: "Active" },
+  { value: "blocked", label: "Blocked" },
+];
+const PREMIUM_OPTIONS = [
+  { value: "yes", label: "Yes" },
+  { value: "no", label: "No" },
+];
+
+const EMPTY_FILTERS = { plan: "", status: "", premium: "" };
 
 /** Yes/No tag: paddingX 8px, paddingY 2px, radius 16px, gap 6px */
 const TagYes = () => (
@@ -62,6 +81,32 @@ const TagBlocked = () => (
   </span>
 );
 
+/** A labelled group of single-select filter chips */
+const FilterGroup = ({ label, options, value, onToggle }) => (
+  <div className="mb-3">
+    <p className="font-inter font-medium text-xs text-[#667085] mb-1.5">{label}</p>
+    <div className="flex flex-wrap gap-1.5">
+      {options.map((opt) => {
+        const selected = value === opt.value;
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => onToggle(opt.value)}
+            className={`px-3 py-1.5 rounded-lg border font-inter font-medium text-sm transition-colors ${
+              selected
+                ? "border-[#6E43B9] bg-[#6E43B9]/10 text-[#6E43B9]"
+                : "border-[#D0D5DD] bg-white text-[#344054] hover:bg-gray-50"
+            }`}
+          >
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
+  </div>
+);
+
 const hasPremium = (user) => {
   const plan = user.subscription?.plan || "free";
   if (plan === "free") return false;
@@ -92,6 +137,13 @@ export default function UsersTable() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
+  /* Filter state */
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [draftFilters, setDraftFilters] = useState(EMPTY_FILTERS);
+  const filterRef = useRef(null);
+  const activeFilterCount = Object.values(filters).filter(Boolean).length;
+
   /* Modal state */
   const [editUser, setEditUser] = useState(null);
   const [blockUser, setBlockUser] = useState(null);
@@ -101,7 +153,7 @@ export default function UsersTable() {
     async (page = 1) => {
       setLoading(true);
       try {
-        const data = await usersAPI.getAll(page, ROWS_PER_PAGE, search);
+        const data = await usersAPI.getAll(page, ROWS_PER_PAGE, search, filters);
         setUsers(data.users);
         setPagination(data.pagination);
       } catch (err) {
@@ -110,13 +162,50 @@ export default function UsersTable() {
         setLoading(false);
       }
     },
-    [search]
+    [search, filters]
   );
 
   useEffect(() => {
     const debounce = setTimeout(() => fetchUsers(1), 300);
     return () => clearTimeout(debounce);
   }, [fetchUsers]);
+
+  /* Close the filter popover on outside click */
+  useEffect(() => {
+    if (!filterOpen) return;
+    const handleClickOutside = (e) => {
+      if (filterRef.current && !filterRef.current.contains(e.target)) {
+        setFilterOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [filterOpen]);
+
+  /* ── Filter handlers ─────────────────────────── */
+
+  const openFilters = () => {
+    setDraftFilters(filters);
+    setFilterOpen((prev) => !prev);
+  };
+
+  const toggleDraft = (key, value) => {
+    setDraftFilters((prev) => ({
+      ...prev,
+      [key]: prev[key] === value ? "" : value,
+    }));
+  };
+
+  const applyFilters = () => {
+    setFilters(draftFilters);
+    setFilterOpen(false);
+  };
+
+  const clearFilters = () => {
+    setDraftFilters(EMPTY_FILTERS);
+    setFilters(EMPTY_FILTERS);
+    setFilterOpen(false);
+  };
 
   /* ── Modal handlers ──────────────────────────── */
 
@@ -209,13 +298,79 @@ export default function UsersTable() {
                 className="w-full sm:w-[240px] h-10 pl-10 pr-3 rounded-lg border border-[#D0D5DD] bg-white font-inter text-sm text-[#101828] placeholder:text-[#667085] outline-none focus:border-[#6E43B9] focus:ring-2 focus:ring-[#6E43B9]/30 transition-colors"
               />
             </div>
-            <button
-              type="button"
-              className="h-10 px-4 rounded-lg border border-[#D0D5DD] bg-white flex items-center gap-2 font-inter font-semibold text-sm text-[#344054] hover:bg-gray-50 transition-colors"
-            >
-              <FilterIcon className="w-5 h-5" />
-              Filters
-            </button>
+            <div className="relative" ref={filterRef}>
+              <button
+                type="button"
+                onClick={openFilters}
+                className={`h-10 px-4 rounded-lg border flex items-center gap-2 font-inter font-semibold text-sm transition-colors ${
+                  activeFilterCount > 0
+                    ? "border-[#6E43B9] bg-[#6E43B9]/5 text-[#6E43B9]"
+                    : "border-[#D0D5DD] bg-white text-[#344054] hover:bg-gray-50"
+                }`}
+              >
+                <FilterIcon className="w-5 h-5" />
+                Filters
+                {activeFilterCount > 0 && (
+                  <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[#6E43B9] text-white text-xs font-semibold">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
+
+              {filterOpen && (
+                <div className="absolute left-0 top-12 z-20 w-[280px] bg-white rounded-xl border border-[#EAECF0] shadow-[0_12px_24px_-4px_rgba(16,24,40,0.12)] p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="font-inter font-semibold text-sm text-[#101828]">
+                      Filters
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setFilterOpen(false)}
+                      className="p-1 rounded text-[#667085] hover:bg-gray-100 transition-colors"
+                      aria-label="Close filters"
+                    >
+                      <CloseIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <FilterGroup
+                    label="Subscription"
+                    options={PLAN_OPTIONS}
+                    value={draftFilters.plan}
+                    onToggle={(v) => toggleDraft("plan", v)}
+                  />
+                  <FilterGroup
+                    label="Status"
+                    options={STATUS_OPTIONS}
+                    value={draftFilters.status}
+                    onToggle={(v) => toggleDraft("status", v)}
+                  />
+                  <FilterGroup
+                    label="Has Premium?"
+                    options={PREMIUM_OPTIONS}
+                    value={draftFilters.premium}
+                    onToggle={(v) => toggleDraft("premium", v)}
+                  />
+
+                  <div className="flex items-center gap-2 mt-4 pt-3 border-t border-[#EAECF0]">
+                    <button
+                      type="button"
+                      onClick={clearFilters}
+                      className="flex-1 h-9 rounded-lg border border-[#D0D5DD] bg-white font-inter font-semibold text-sm text-[#344054] hover:bg-gray-50 transition-colors"
+                    >
+                      Clear
+                    </button>
+                    <button
+                      type="button"
+                      onClick={applyFilters}
+                      className="flex-1 h-9 rounded-lg bg-[#6E43B9] font-inter font-semibold text-sm text-white hover:bg-[#5e389f] transition-colors"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
